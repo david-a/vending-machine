@@ -68,27 +68,24 @@ export class AuthService {
       refreshTokenExpiration,
       keyEncodingPassphrase,
     } = this.config;
-    const basePayload = { sub: user.id };
-    const accessTokenPayload = {
-      ...basePayload,
-      username: user.username,
-      email: user.email,
-    }; // TODO: add roles/permissions/claims/scopes
     return {
-      access_token: this.jwtService.sign(accessTokenPayload, {
+      access_token: this.jwtService.sign(accessTokenPayload(user), {
         privateKey: {
           key: keyPair.privateKey,
           passphrase: keyEncodingPassphrase,
         } as any, // Can remove casting to any once this PR is merged: https://github.com/nestjs/jwt/pull/1192
         expiresIn: accessTokenExpiration,
       }),
-      refresh_token: this.jwtService.sign(basePayload, {
-        privateKey: {
-          key: keyPair.privateKey,
-          passphrase: keyEncodingPassphrase,
-        } as any,
-        expiresIn: refreshTokenExpiration,
-      }),
+      refresh_token: this.jwtService.sign(
+        { sub: user.id },
+        {
+          privateKey: {
+            key: keyPair.privateKey,
+            passphrase: keyEncodingPassphrase,
+          } as any,
+          expiresIn: refreshTokenExpiration,
+        },
+      ),
     };
   }
 
@@ -104,14 +101,9 @@ export class AuthService {
 
     const { accessTokenExpiration, keyEncodingPassphrase } = this.config;
     const user = await this.usersService.findOne(userId);
-    const payload = {
-      sub: user.id,
-      username: user.username,
-      email: user.email,
-    }; // TODO: add roles/permissions/claims/scopes
 
     return {
-      access_token: this.jwtService.sign(payload, {
+      access_token: this.jwtService.sign(accessTokenPayload(user), {
         privateKey: {
           key: keyPair.privateKey,
           passphrase: keyEncodingPassphrase,
@@ -141,3 +133,10 @@ export class AuthService {
     return Math.random().toString(36).slice(-6);
   }
 }
+
+const accessTokenPayload = (user: any) => ({
+  sub: user.id,
+  username: user.username,
+  email: user.email,
+  role: user.role,
+});
