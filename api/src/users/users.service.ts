@@ -1,51 +1,67 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import mongoose, { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { UserDocument } from './user.schema';
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      id: 'asdfgh-124das-21d245-21fa2hs',
-      username: 'john',
-      email: 'john.doe@vending-machine-example.com',
-    },
-    {
-      id: 'asd32h-1gawas-019c45-2dafa2hs',
-      username: 'jane',
-      email: 'jane.koo@vending-machine-example.com',
-    },
-  ];
+  constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  create(createUserDto: CreateUserDto): Promise<UserDocument> {
+    const createdUser = new this.userModel({ ...createUserDto, role: 'buyer' });
+    return createdUser.save();
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findAll(): Promise<UserDocument[]> {
+    return this.userModel.find().exec();
   }
 
   findOne(id: string) {
-    return this.users.find((user) => user.id === id);
+    return this.userModel.findById(id).exec();
   }
 
   findByUsernameOrEmail(usernameOrEmail: string) {
-    return this.users.find(
-      (user) =>
-        user.username === usernameOrEmail || user.email === usernameOrEmail,
-    );
+    return this.userModel
+      .findOne({
+        $or: [{ email: usernameOrEmail }, { username: usernameOrEmail }],
+      })
+      .exec();
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: string, updateUserDto: UpdateUserDto): Promise<UserDocument> {
+    return this.userModel
+      .findByIdAndUpdate(id, updateUserDto, {
+        returnDocument: 'after',
+      })
+      .exec();
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string): Promise<UserDocument> {
+    let result: UserDocument;
+    const session = await this.userModel.startSession();
+
+    await session.withTransaction(async () => {
+      const user = await this.userModel.findById(id).exec();
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      if (user['deposit'] !== 0) {
+        throw new HttpException(
+          'User has a non-zero deposit',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      result = await user.remove();
+    });
+
+    await session.endSession();
+    return result;
   }
 
+  // TODO: consider replacing with `new mongoose.Types.ObjectId().toHexString()` and caching for a short period in redis. But prevent abuse.
   generateFakeUserId = (username) => {
-    const size = 12;
+    const size = 24;
     let hash = 0;
     for (let i = 0; i < username.length; i++) {
       hash = (hash + username.charCodeAt(i)) % 26;

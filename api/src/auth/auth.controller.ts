@@ -13,6 +13,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { OneTimeCodeDto } from './dto/one-time-code.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { AppGuard } from './guards/app.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -33,8 +34,8 @@ export class AuthController {
       oneTimeCodeDto.username,
     );
     return {
-      userId:
-        userId || this.userService.generateFakeUserId(oneTimeCodeDto.username),
+      id:
+        userId || this.userService.generateFakeUserId(oneTimeCodeDto.username), // TODO: make it look like a real user id
     };
   }
 
@@ -44,7 +45,7 @@ export class AuthController {
     return await this.authService.login(req.user);
   }
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AppGuard)
   @Post('refreshToken')
   async refreshToken(
     @Request() req,

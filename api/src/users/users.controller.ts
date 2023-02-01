@@ -6,37 +6,71 @@ import {
   Patch,
   Param,
   Delete,
+  UseFilters,
+  UseGuards,
+  SerializeOptions,
+  Request,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { MongoExceptionFilter } from '../shared/filters/mongo-exception.filter';
+import { UserEntity } from './user.entity';
+import { Roles } from 'src/shared/decorators/roles.decorator';
+import { Role } from 'src/shared/enums/role.enum';
+import { AppGuard } from 'src/auth/guards/app.guard';
+import { verifySelfOrAdmin } from './user.utils';
+@UseFilters(new MongoExceptionFilter())
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  async create(@Body() createUserDto: CreateUserDto): Promise<UserEntity> {
+    const user = await this.usersService.create(createUserDto);
+    return new UserEntity(user.toObject());
   }
 
+  @UseGuards(AppGuard)
+  @SerializeOptions({
+    groups: [Role.Admin],
+  })
+  @Roles(Role.Admin)
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  async findAll() {
+    return (await this.usersService.findAll()).map(
+      (user) => new UserEntity(user.toObject()),
+    );
   }
 
+  @UseGuards(AppGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+  async findOne(@Param('id') id: string, @Request() req) {
+    verifySelfOrAdmin(req.user, id);
+    return new UserEntity((await this.usersService.findOne(id)).toObject());
   }
 
+  @UseGuards(AppGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @Request() req,
+  ) {
+    verifySelfOrAdmin(req.user, id);
+    const result = await this.usersService.update(id, updateUserDto);
+    if (!result)
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    return new UserEntity(result.toObject());
   }
 
+  @UseGuards(AppGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usersService.remove(+id);
+  async remove(@Param('id') id: string, @Request() req) {
+    verifySelfOrAdmin(req.user, id);
+    const result = await this.usersService.remove(id);
+    return new UserEntity(result.toObject());
   }
 }

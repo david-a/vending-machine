@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtModule, JwtSecretRequestType } from '@nestjs/jwt';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { AppGuard } from './guards/app.guard';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
       signOptions: { algorithm: 'RS512' },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, LocalStrategy, JwtStrategy, AppGuard],
   controllers: [AuthController],
 })
 export class AuthModule {}

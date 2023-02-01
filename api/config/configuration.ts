@@ -13,8 +13,14 @@ export default () => ({
   },
   redis: {
     // TODO: use TLS
-    url: process.env.REDIS_URL,
+    url: process.env.REDIS_URI,
     password: process.env.REDIS_PASSWORD,
+  },
+  db: {
+    uri: process.env.MONGODB_URI,
+    dbName: process.env.MONGODB_DB_NAME,
+    user: process.env.MONGO_ROOT_USERNAME,
+    pass: process.env.MONGO_ROOT_PASSWORD,
   },
   auth: {
     keyEncodingPassphrase: process.env.AUTH_SECRET, // used for encrypting the private keys

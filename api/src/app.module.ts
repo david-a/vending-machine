@@ -5,10 +5,11 @@ import { UsersService } from './users/users.service';
 import { UsersController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerModule } from './mailer/mailer.module';
 import configuration from '../config/configuration';
 import { RedisModule } from './redis/redis.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
   imports: [
@@ -19,8 +20,15 @@ import { RedisModule } from './redis/redis.module';
     AuthModule,
     MailerModule,
     RedisModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        ...configService.get('db'),
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AppController, UsersController],
-  providers: [AppService, UsersService],
+  providers: [AppService],
 })
 export class AppModule {}

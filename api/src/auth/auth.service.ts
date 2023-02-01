@@ -6,6 +6,8 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { RedisService } from 'src/redis/redis.service';
 import { UsersService } from 'src/users/users.service';
 import { generateKeyPairSync } from 'crypto';
+import { UserEntity } from 'src/users/user.entity';
+import { UserDocument } from 'src/users/user.schema';
 
 @Injectable()
 export class AuthService {
@@ -24,8 +26,11 @@ export class AuthService {
   }
 
   async sendPasswordlessOneTimeCode(usernameOrEmail: string): Promise<any> {
-    const user = await this.usersService.findByUsernameOrEmail(usernameOrEmail);
+    let user: UserEntity | UserDocument =
+      await this.usersService.findByUsernameOrEmail(usernameOrEmail);
+
     if (user) {
+      user = new UserEntity(user.toObject());
       // TODO: extract creation of code and sending the email to an async task queue (e.g. bull) to avoid blocking the customer-facing API
       const oneTimeCode = this.generateOneTimeCode();
       await this.redisService.addOneTimeCodeToUser(user.id, oneTimeCode);

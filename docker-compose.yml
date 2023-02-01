@@ -8,6 +8,8 @@ services:
       - "3301:3000"
     env_file:
       - ./api/.env
+    # environment:
+    #   - NEST_DEBUG=true
     volumes:
       - ./api:/app
     command: yarn start:dev
