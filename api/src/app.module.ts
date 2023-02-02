@@ -10,6 +10,7 @@ import { MailerModule } from './mailer/mailer.module';
 import configuration from '../config/configuration';
 import { RedisModule } from './redis/redis.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MongooseModule } from '@nestjs/mongoose';
       }),
       inject: [ConfigService],
     }),
+    ProductsModule,
   ],
   controllers: [AppController, UsersController],
   providers: [AppService],

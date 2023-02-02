@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
+import { DepositDto } from '../app/dto/deposit.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserDocument } from './user.schema';
 @Injectable()
@@ -37,15 +38,30 @@ export class UsersService {
       .exec();
   }
 
+  deposit(id: string, depositDto: DepositDto): Promise<UserDocument> {
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        { $inc: { deposit: depositDto.amount } },
+        {
+          returnDocument: 'after',
+        },
+      )
+      .exec();
+  }
+
   async remove(id: string): Promise<UserDocument> {
     let result: UserDocument;
     const session = await this.userModel.startSession();
 
+    // Another, simpler approach is to just use findOneAndDelete with non-zero deposit,
+    // but then we can't distinguish between user not found and user has non-zero deposit.
     await session.withTransaction(async () => {
       const user = await this.userModel.findById(id).exec();
       if (!user) {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
+      // TODO: consider preventing deletion of users with admin/seller role
       if (user['deposit'] !== 0) {
         throw new HttpException(
           'User has a non-zero deposit',

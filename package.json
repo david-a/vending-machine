@@ -7,8 +7,10 @@
     "prestart": "cd api && if command -v yarn >/dev/null 2>&1; then yarn; else npm install; fi",
     "start": "docker-compose --env-file api/.env up",
     "start:d": "docker-compose --env-file api/.env up -d",
-    "restart:api": "docker-compose --env-file api/.env restart api",
     "restart": "docker-compose --env-file api/.env restart",
+    "restart:api": "docker-compose --env-file api/.env restart api",
+    "restart:db": "docker-compose --env-file api/.env restart db",
+    "restart:redis": "docker-compose --env-file api/.env restart redis",
     "stop": "docker-compose --env-file api/.env down"
   }
 }

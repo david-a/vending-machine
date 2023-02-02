@@ -2,6 +2,9 @@ import { Exclude, Expose } from 'class-transformer';
 import { Role } from 'src/shared/enums/role.enum';
 
 export class UserEntity {
+  @Exclude()
+  _id: string;
+
   username: string;
   email: string;
   deposit: number;
@@ -14,7 +17,7 @@ export class UserEntity {
 
   @Expose()
   get id(): string {
-    return this['_id'].toString();
+    return this._id.toString();
   }
 
   @Expose({ groups: [Role.Admin] })

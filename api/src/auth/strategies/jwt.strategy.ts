@@ -3,6 +3,7 @@ import { decode } from 'jsonwebtoken';
 import { PassportStrategy } from '@nestjs/passport';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
+import { UserEntity } from 'src/users/user.entity';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -30,6 +31,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: any) {
     const { sub, username, email, role } = payload;
-    return { id: sub, username, email, role };
+    return new UserEntity({ _id: sub, username, email, role });
   }
 }
