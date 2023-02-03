@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  HttpCode,
   HttpException,
   HttpStatus,
   Post,
@@ -43,6 +44,13 @@ export class AuthController {
   @Post('login')
   async login(@Request() req, @Body() _loginDto: LoginDto) {
     return await this.authService.login(req.user);
+  }
+
+  @UseGuards(AppGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('/logout/all')
+  async logout(@Request() req) {
+    return await this.authService.logoutAll(req.user);
   }
 
   @UseGuards(AppGuard)

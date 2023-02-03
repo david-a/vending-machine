@@ -26,11 +26,12 @@ export class AuthService {
   }
 
   async sendPasswordlessOneTimeCode(usernameOrEmail: string): Promise<any> {
-    let user: UserEntity | UserDocument =
-      await this.usersService.findByUsernameOrEmail(usernameOrEmail);
+    const userRaw = await this.usersService.findByUsernameOrEmail(
+      usernameOrEmail,
+    );
 
-    if (user) {
-      user = new UserEntity(user.toObject());
+    if (userRaw) {
+      const user = new UserEntity(userRaw.toObject());
       // TODO: extract creation of code and sending the email to an async task queue (e.g. bull) to avoid blocking the customer-facing API
       const oneTimeCode = this.generateOneTimeCode();
       await this.redisService.addOneTimeCodeToUser(user.id, oneTimeCode);
@@ -58,8 +59,9 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: UserEntity) {
     let keyPair = await this.redisService.getKeyPairForUser(user.id, true);
+    const sessionExists = !!keyPair.privateKey;
 
     // We're extending the expiration time of the key pair here on each login, but the actual expiration of each access/refresh token is signed inside the JWT.
     // The key pair expiration is used as a fallback.
@@ -91,7 +93,12 @@ export class AuthService {
           expiresIn: refreshTokenExpiration,
         },
       ),
+      sessionExists,
     };
+  }
+
+  async logoutAll(user: UserEntity) {
+    await this.redisService.deleteKeyPairFromUser(user.id);
   }
 
   async refreshToken(userId: any) {

@@ -50,6 +50,10 @@ export class UsersService {
       .exec();
   }
 
+  reset(id: string) {
+    return this.userModel.findByIdAndUpdate(id, { deposit: 0 }).exec();
+  }
+
   async remove(id: string): Promise<UserDocument> {
     let result: UserDocument;
     const session = await this.userModel.startSession();

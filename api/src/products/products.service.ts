@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { OrderDirection } from 'src/shared/enums/orderDirection.enum';
+import { OrderDirection } from 'src/shared/enums/order-direction.enum';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ListProductsDto } from './dto/list-products.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -43,11 +43,11 @@ export class ProductsService {
       query = query.sort({ [listProductsDto.orderBy]: direction });
     }
 
-    return query.exec();
+    return query.populate('seller').exec();
   }
 
   findOne(id: string) {
-    return this.productModel.findById(id).exec();
+    return this.productModel.findById(id).populate('seller').exec();
   }
 
   update(id: string, updateProductDto: UpdateProductDto, requesterId: string) {

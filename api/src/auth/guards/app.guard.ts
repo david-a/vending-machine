@@ -20,6 +20,11 @@ export class AppGuard extends AuthGuard('jwt') implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     if (!(await super.canActivate(context))) return false;
+    const { user, path } = context.switchToHttp().getRequest();
+
+    if (path === '/auth/refreshToken') return true;
+    if (!user.username) return false; // which means the user is using the refresh token
+
     const requiredRoles = this.reflector.getAllAndOverride<Role[]>(ROLES_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -27,7 +32,7 @@ export class AppGuard extends AuthGuard('jwt') implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const { user } = context.switchToHttp().getRequest();
+
     return requiredRoles.some((role) => user.role === role);
   }
 }

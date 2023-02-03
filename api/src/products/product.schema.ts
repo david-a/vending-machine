@@ -1,4 +1,5 @@
 import mongoose, { HydratedDocument } from 'mongoose';
+import { ProductEntity } from './product.entity';
 
 export const ProductSchema = new mongoose.Schema(
   {
@@ -18,5 +19,5 @@ export const ProductSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export const Product = mongoose.model('Product', ProductSchema);
-export type ProductDocument = HydratedDocument<typeof Product>;
+export const Product = mongoose.model<ProductEntity>('Product', ProductSchema);
+export type ProductDocument = HydratedDocument<ProductEntity>;

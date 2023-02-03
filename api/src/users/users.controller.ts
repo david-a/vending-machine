@@ -24,6 +24,7 @@ import { Roles } from 'src/shared/decorators/roles.decorator';
 import { Role } from 'src/shared/enums/role.enum';
 import { AppGuard } from 'src/auth/guards/app.guard';
 import { verifySelfOrAdmin } from './user.utils';
+import { RequesterContext } from 'src/shared/enums/requester-context';
 
 @UseFilters(new MongoExceptionFilter())
 @Controller('users')
@@ -42,13 +43,16 @@ export class UsersController {
   })
   @Roles(Role.Admin)
   @Get()
-  async findAll() {
+  async findAll(@Request() req) {
     return (await this.usersService.findAll()).map(
       (user) => new UserEntity(user.toObject()),
     );
   }
 
   @UseGuards(AppGuard)
+  @SerializeOptions({
+    groups: [RequesterContext.Self], // TODO: chanage admin serializer group dynamically
+  })
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
     verifySelfOrAdmin(req.user, id); // Another approach is to just use the req.user.id instead of passing the id as a param but I wanted to enable the admin to view any user's profile
@@ -56,7 +60,10 @@ export class UsersController {
   }
 
   @UseGuards(AppGuard)
-  @Patch(':id')
+  @SerializeOptions({
+    groups: [RequesterContext.Self], // TODO: chanage admin serializer group dynamically
+  })
+  @Patch(':id') // TODO: if email is changed, require re-verification/login
   async update(
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto, // TODO: enable changing the amount/role by admin

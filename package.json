@@ -4,7 +4,7 @@
   "description": "Vending Machine API & UI",
   "author": "David Avikasis",
   "scripts": {
-    "prestart": "cd api && if command -v yarn >/dev/null 2>&1; then yarn; else npm install; fi",
+    "prestart": "if [ ! -f mongodb-keyfile ]; then openssl rand -base64 756 > mongodb-keyfile && chmod 600 mongodb-keyfile ; fi ; cd api && if command -v yarn >/dev/null 2>&1; then yarn; else npm install; fi",
     "start": "docker-compose --env-file api/.env up",
     "start:d": "docker-compose --env-file api/.env up -d",
     "restart": "docker-compose --env-file api/.env restart",

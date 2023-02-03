@@ -20,6 +20,7 @@ import { Roles } from 'src/shared/decorators/roles.decorator';
 import { AppGuard } from 'src/auth/guards/app.guard';
 import { ProductEntity } from './product.entity';
 import { ListProductsDto } from './dto/list-products.dto';
+import { ProductDocument } from './product.schema';
 
 @Controller('products')
 export class ProductsController {
@@ -53,7 +54,6 @@ export class ProductsController {
     const result = await this.productsService.findOne(id);
     if (!result)
       throw new HttpException('Product not found', HttpStatus.NOT_FOUND);
-
     return new ProductEntity(result.toObject());
   }
 
@@ -85,7 +85,7 @@ export class ProductsController {
     const result = await this.productsService.remove(id, requesterId);
     validateResultByUser(result, req.user);
 
-    return new ProductEntity((result as any).toObject());
+    return new ProductEntity(result.toObject());
   }
 }
 

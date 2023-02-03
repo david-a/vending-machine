@@ -1,4 +1,5 @@
 import mongoose, { HydratedDocument, model } from 'mongoose';
+import { UserEntity } from './user.entity';
 
 export const UserSchema = new mongoose.Schema(
   {
@@ -15,5 +16,5 @@ export const UserSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-export const User = mongoose.model('User', UserSchema);
-export type UserDocument = HydratedDocument<typeof User>;
+export const User = mongoose.model<UserEntity>('User', UserSchema);
+export type UserDocument = HydratedDocument<UserEntity>;

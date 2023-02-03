@@ -36,12 +36,18 @@ services:
   db:
     image: mongo:latest
     restart: always
+    command: mongod --replSet "rs0" --keyFile /data/keyfile --bind_ip_all
     ports:
       - "3402:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongosh -u $${MONGO_INITDB_ROOT_USERNAME} -p $${MONGO_INITDB_ROOT_PASSWORD} --quiet) -eq 1
+      interval: 10s
+      start_period: 10s
     volumes:
+      - ./mongodb-keyfile:/data/keyfile
       - type: bind
         source: data/mongodb
         target: /data/db
