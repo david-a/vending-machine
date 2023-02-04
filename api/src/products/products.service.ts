@@ -25,15 +25,7 @@ export class ProductsService {
   }
 
   findAll(listProductsDto: ListProductsDto): Promise<ProductDocument[]> {
-    const filters = {};
-    if (listProductsDto.sellerId) {
-      filters['seller'] = listProductsDto.sellerId;
-    }
-    if (listProductsDto.available !== undefined) {
-      filters['amountAvailable'] = listProductsDto.available
-        ? { $gt: 0 }
-        : { $eq: 0 };
-    }
+    const filters = prepareFilters(listProductsDto);
     let query = this.productModel.find(filters);
     const direction =
       (listProductsDto.orderDirection &&
@@ -77,3 +69,22 @@ export class ProductsService {
     return query.exec();
   }
 }
+
+const prepareFilters = (listProductsDto) => {
+  const filters = {};
+  if (listProductsDto.sellerId) {
+    filters['seller'] = listProductsDto.sellerId;
+  }
+  if (listProductsDto.available !== undefined) {
+    filters['amountAvailable'] = listProductsDto.available
+      ? { $gt: 0 }
+      : { $eq: 0 };
+  }
+  if (listProductsDto.productName) {
+    filters['productName'] = {
+      $regex: listProductsDto.productName,
+      $options: 'i',
+    };
+  }
+  return filters;
+};

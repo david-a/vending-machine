@@ -1,5 +1,11 @@
 import { Transform } from 'class-transformer';
-import { IsIn, IsBoolean, IsOptional, IsString } from 'class-validator';
+import {
+  IsIn,
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { booleanTransformer } from 'src/shared/transformers';
 
 export class ListProductsDto {
@@ -21,4 +27,8 @@ export class ListProductsDto {
   @IsBoolean()
   @Transform(booleanTransformer)
   available: boolean;
+
+  @IsOptional()
+  @IsString()
+  productName: string;
 }
