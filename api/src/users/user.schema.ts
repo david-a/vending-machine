@@ -1,4 +1,5 @@
 import mongoose, { HydratedDocument, model } from 'mongoose';
+import { Role } from 'src/shared/enums/role.enum';
 import { UserEntity } from './user.entity';
 
 export const UserSchema = new mongoose.Schema(
@@ -9,7 +10,7 @@ export const UserSchema = new mongoose.Schema(
       required: true,
       type: String,
       immutable: true,
-      enum: ['buyer', 'seller'],
+      enum: Role,
     },
     deposit: { required: true, type: Number, default: 0 },
   },
