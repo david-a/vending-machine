@@ -1,6 +1,7 @@
 import { IsIn } from 'class-validator';
+import { COINS } from 'src/shared/constants';
 
 export class DepositDto {
-  @IsIn([5, 10, 20, 50, 100])
+  @IsIn(COINS)
   amount: string;
 }

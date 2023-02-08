@@ -7,6 +7,7 @@ import { ProductEntity } from './products/product.entity';
 import { ProductDocument } from './products/product.schema';
 import { UserEntity } from './users/user.entity';
 import { UserDocument } from './users/user.schema';
+import { COINS } from './shared/constants';
 
 @Injectable()
 export class AppService {
@@ -51,9 +52,11 @@ export class AppService {
       }
 
       const totalCost = product.cost * buyDto.quantity;
-      let change = 0;
+      let change = [],
+        totalChange = 0;
       if (resetAndGetChange) {
-        change = buyer.deposit - totalCost;
+        totalChange = buyer.deposit - totalCost;
+        change = getChange(totalChange);
         buyer.deposit = 0;
       } else {
         buyer.deposit -= totalCost;
@@ -73,6 +76,7 @@ export class AppService {
       await session.commitTransaction();
       return {
         totalCost,
+        totalChange,
         change,
         currentDeposit: buyer.deposit,
         product: productToReturn,
@@ -85,3 +89,15 @@ export class AppService {
     }
   }
 }
+
+const getChange = (totalChange: number) => {
+  const change = [];
+  let remainingChange = totalChange;
+  for (const coin of COINS) {
+    if (remainingChange === 0) break;
+    const amount = Math.floor(remainingChange / coin);
+    for (let i = 0; i < amount; i++) change.push(coin);
+    remainingChange -= amount * coin;
+  }
+  return change;
+};
